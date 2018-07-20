@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+  btcpd:
+      restart: unless-stopped
+      container_name: btcpayserver_btcpd
+      image: BTCPrivate/docker-bitcoinprivate:1.0.12
+      environment:
+        BITCOIN_EXTRA_ARGS: |
+          rpcport=43782
+          ${NBITCOIN_NETWORK:-regtest}=1
+          port=39388
+          whitelist=0.0.0.0/0
+      expose:
+        - "43782"
+        - "39388"
+      volumes:
+        - "bprivate_datadir:/data"
+  nbxplorer:
+      environment:
+        NBXPLORER_CHAINS: "btcp"
+        NBXPLORER_BTCPRPCURL: http://btcpd:43782/
+        NBXPLORER_BTCPNODEENDPOINT: btcpd:39388
+      links:
+        - btcpd
+      volumes:
+        - "btcp_datadir:/root/.btcprivate"
+  btcpayserver:
+      environment:
+        BTCPAY_CHAINS: "btcp"
+        BTCPAY_BTCPEXPLORERURL: http://nbxplorer:32838/
+volumes:
+  btcp_datadir:
